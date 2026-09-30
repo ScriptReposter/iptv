@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# ps5-native-app-boilerplate - PS5 packaging script.
+# Copyright (C) 2026 BlackBearReloaded
+# SPDX-License-Identifier: GPL-3.0-or-later
 """
 Package the PPSA99003 title folder for PS5 homebrew deployment.
 Transfers the compiled FSELF eboot.bin, runtime PRX modules, shaders,
