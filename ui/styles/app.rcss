@@ -1,0 +1,179 @@
+* { box-sizing: border-box; }
+body, div, header, main, nav, section, aside, footer, span, button, img { display: block; }
+body { width: 1920px; height: 1080px; margin: 0; overflow: hidden; background-color: #080c16; color: #f8fafc; font-family: "Montserrat"; font-size: 20px; font-weight: 500; line-height: 30px; }
+button { margin: 0; padding: 0; overflow: hidden; border: 1px #1e293b; border-radius: 8px; background-color: #101726; color: #f8fafc; font-family: "Montserrat"; font-size: 18px; font-weight: 500; line-height: 28px; text-align: left; nav: auto; }
+
+#app-shell, #safe-frame { position: absolute; left: 0px; top: 0px; width: 1920px; height: 1080px; overflow: hidden; }
+#app-shell { background-color: #080c16; }
+#app-background { position: absolute; left: 0px; top: 0px; width: 1920px; height: 1080px; }
+
+#topbar { position: absolute; left: 0px; top: 0px; width: 1920px; height: 100px; border-bottom: 2px #1e293b; background-color: #0d1322; }
+#brand-mark { position: absolute; left: 64px; top: 22px; width: 56px; height: 56px; }
+#brand-block { position: absolute; left: 136px; top: 18px; width: 260px; height: 68px; }
+#brand-name { position: absolute; left: 0px; top: 0px; width: 260px; height: 38px; color: #ffffff; font-size: 32px; line-height: 38px; letter-spacing: 1px; }
+#brand-version { position: absolute; left: 0px; top: 38px; width: 220px; height: 28px; color: #38bdf8; font-size: 16px; line-height: 28px; letter-spacing: 1px; }
+
+#primary-nav { position: absolute; left: 420px; top: 20px; width: 1060px; height: 60px; }
+.nav-item { position: absolute; top: 0px; width: 190px; height: 60px; border: 2px #1e293b; border-radius: 10px; background-color: #111a2d; color: #94a3b8; text-align: center; }
+.nav-item span { position: absolute; left: 0px; top: 15px; width: 190px; font-size: 18px; text-align: center; }
+#nav-live-tv { left: 0px; }
+#nav-movies { left: 205px; }
+#nav-series { left: 410px; }
+#nav-favorites { left: 615px; }
+#nav-sources { left: 820px; }
+
+.tab-live.active, .tab-live.selected { border: 2px #0284c7; background-color: #0c2d48; color: #ffffff; }
+.tab-movies.active, .tab-movies.selected { border: 2px #dc2626; background-color: #450a0a; color: #ffffff; }
+.tab-series.active, .tab-series.selected { border: 2px #d97706; background-color: #451a03; color: #ffffff; }
+.tab-fav.active, .tab-fav.selected { border: 2px #eab308; background-color: #3f2c00; color: #ffffff; }
+.tab-sources.active, .tab-sources.selected { border: 2px #64748b; background-color: #1e293b; color: #ffffff; }
+
+#header-status { position: absolute; right: 64px; top: 32px; width: 340px; height: 36px; color: #cbd5e1; text-align: right; }
+.status-dot { width: 10px; height: 10px; border-radius: 5px; background-color: #10b981; }
+.status-inline .status-dot { position: absolute; right: 300px; top: 11px; }
+.status-inline span:last-child { position: absolute; right: 0px; top: 0px; width: 280px; height: 32px; overflow: hidden; white-space: nowrap; text-align: right; font-size: 16px; }
+
+#content-shell { position: absolute; left: 64px; top: 116px; width: 1792px; height: 816px; overflow: hidden; }
+.screen { position: absolute; left: 0px; top: 0px; width: 1792px; height: 816px; overflow: hidden; }
+.screen-heading { position: absolute; left: 0px; top: 0px; width: 720px; height: 48px; color: #ffffff; font-size: 36px; line-height: 46px; letter-spacing: 1px; }
+.screen-subtitle { position: absolute; left: 0px; top: 48px; width: 1500px; height: 30px; overflow: hidden; color: #94a3b8; font-size: 18px; line-height: 28px; white-space: nowrap; text-overflow: ellipsis; }
+
+.rail-panel, #channel-detail-region, #source-management-region, #source-status-region { overflow: hidden; border: 1px #1e293b; border-radius: 12px; background-color: #0f172a; }
+.panel-kicker { position: absolute; left: 16px; top: 10px; height: 24px; color: #38bdf8; font-size: 14px; line-height: 22px; letter-spacing: 1px; }
+
+.rail-panel { position: absolute; top: 88px; height: 112px; }
+#source-region { left: 0px; width: 299px; }
+#group-region { left: 315px; width: 931px; }
+#search-region { left: 1262px; width: 530px; }
+.rail-list { position: absolute; left: 16px; top: 42px; width: 100%; height: 56px; overflow: hidden; }
+.rail-item { position: absolute; top: 0px; height: 56px; border: 1px #1e293b; border-radius: 8px; background-color: #090e1a; }
+#source-slot-0, #source-slot-1, #source-slot-2 { left: 0px; width: 267px; }
+.rail-item span { position: absolute; left: 12px; right: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.rail-item span:first-child { top: 4px; height: 25px; color: #ffffff; font-size: 16px; line-height: 24px; }
+.rail-item span:nth-child(2) { top: 28px; height: 20px; color: #94a3b8; font-size: 12px; line-height: 18px; }
+.rail-item .item-status { left: 90px; top: 28px; right: 10px; color: #10b981; font-size: 12px; line-height: 18px; text-align: right; }
+#source-region .rail-item span:nth-child(2) { right: 70px; }
+
+.group-item { width: 141px; }
+#group-slot-0 { left: 0px; } #group-slot-1 { left: 151px; } #group-slot-2 { left: 302px; } #group-slot-3 { left: 453px; } #group-slot-4 { left: 604px; } #group-slot-5 { left: 755px; }
+.group-item span:first-child { top: 5px; color: #ffffff; font-size: 16px; }
+.group-item span:nth-child(2) { top: 29px; color: #38bdf8; font-size: 12px; text-align: right; }
+.rail-item.selected, .rail-item.focused { border: 2px #38bdf8; background-color: #0c2d48; }
+.rail-item.focused { border-color: #ffffff; }
+
+#search-input { position: absolute; left: 16px; top: 42px; width: 498px; height: 46px; border-radius: 8px; background-color: #090e1a; }
+#search-input img { position: absolute; left: 12px; top: 7px; width: 32px; height: 32px; }
+#search-query { position: absolute; left: 54px; top: 8px; width: 340px; height: 30px; overflow: hidden; color: #94a3b8; font-size: 16px; line-height: 28px; white-space: nowrap; text-overflow: ellipsis; }
+#search-clear { position: absolute; right: 12px; top: 9px; width: 72px; color: #38bdf8; font-size: 12px; line-height: 26px; text-align: right; }
+#search-hint { position: absolute; right: 16px; top: 88px; height: 20px; color: #64748b; font-size: 12px; line-height: 18px; }
+
+#channel-region { position: absolute; left: 0px; top: 216px; width: 1246px; height: 528px; overflow: hidden; }
+#channel-list { position: absolute; left: 0px; top: 0px; width: 1246px; height: 528px; }
+.channel-card { position: absolute; width: 299px; height: 256px; border: 1px #1e293b; border-radius: 12px; background-color: #0f172a; }
+#channel-slot-0 { left: 0px; top: 0px; } #channel-slot-1 { left: 315px; top: 0px; } #channel-slot-2 { left: 630px; top: 0px; } #channel-slot-3 { left: 945px; top: 0px; }
+#channel-slot-4 { left: 0px; top: 272px; } #channel-slot-5 { left: 315px; top: 272px; } #channel-slot-6 { left: 630px; top: 272px; } #channel-slot-7 { left: 945px; top: 272px; }
+.channel-card.selected, .channel-card.focused { border: 2px #38bdf8; background-color: #0c2d48; }
+.channel-card.focused { border-color: #ffffff; }
+
+.channel-number { position: absolute; left: 16px; top: 10px; width: 70px; height: 24px; color: #38bdf8; font-size: 14px; line-height: 22px; }
+.channel-logo { position: absolute; left: 16px; top: 50px; width: 64px; height: 64px; border-radius: 8px; background-color: #0284c7; color: #ffffff; font-size: 20px; line-height: 64px; text-align: center; }
+.channel-name { position: absolute; left: 94px; top: 48px; width: 188px; height: 32px; overflow: hidden; color: #ffffff; font-size: 20px; line-height: 30px; white-space: nowrap; text-overflow: ellipsis; }
+.channel-meta { position: absolute; left: 94px; top: 84px; width: 188px; height: 54px; overflow: hidden; color: #94a3b8; font-size: 16px; line-height: 24px; text-overflow: ellipsis; }
+
+.live-marker, .favorite-marker, .recent-marker { position: absolute; top: 158px; height: 22px; overflow: hidden; font-size: 12px; line-height: 20px; letter-spacing: 1px; }
+.live-marker { left: 16px; width: 50px; color: #10b981; }
+.favorite-marker { left: 74px; width: 80px; color: #eab308; display: none; }
+.recent-marker { left: 160px; width: 70px; color: #38bdf8; display: none; }
+.favorite-marker.active, .recent-marker.active { display: block; }
+.playback-marker { position: absolute; left: 16px; top: 188px; width: 100px; height: 22px; display: none; overflow: hidden; font-size: 12px; line-height: 20px; letter-spacing: 1px; }
+.playback-marker.active { display: block; }
+.playback-marker.playable { color: #34d399; }
+.playback-marker.failed { color: #f87171; }
+.channel-tech { position: absolute; left: 16px; top: 220px; width: 267px; height: 22px; overflow: hidden; color: #64748b; font-size: 14px; line-height: 20px; letter-spacing: 1px; white-space: nowrap; text-overflow: ellipsis; }
+.empty-state { position: absolute; left: 0px; top: 220px; width: 1246px; color: #94a3b8; font-size: 18px; text-align: center; }
+
+#channel-detail-region { position: absolute; left: 1262px; top: 216px; width: 530px; height: 528px; background-color: #0b1120; }
+#selected-channel-number { position: absolute; left: 24px; top: 56px; width: 70px; height: 50px; color: #38bdf8; font-size: 32px; line-height: 46px; }
+#selected-channel-name { position: absolute; left: 102px; top: 58px; width: 400px; height: 44px; overflow: hidden; color: #ffffff; font-size: 28px; line-height: 40px; white-space: nowrap; text-overflow: ellipsis; }
+#selected-channel-meta { position: absolute; left: 24px; top: 116px; width: 482px; height: 58px; overflow: hidden; color: #94a3b8; font-size: 18px; line-height: 26px; }
+#selected-channel-tech { position: absolute; left: 24px; top: 188px; width: 482px; height: 24px; overflow: hidden; color: #64748b; font-size: 16px; line-height: 22px; letter-spacing: 1px; white-space: nowrap; text-overflow: ellipsis; }
+#selected-channel-markers { position: absolute; left: 24px; top: 222px; width: 482px; height: 24px; }
+#selected-channel-markers .favorite-marker, #selected-channel-markers .recent-marker { top: 0px; }
+#selected-channel-markers .favorite-marker { left: 0px; } #selected-channel-markers .recent-marker { left: 90px; }
+#selected-channel-markers .playback-marker { left: 180px; top: 0px; }
+
+.primary-action { border: 1px #0284c7; border-radius: 8px; background-color: #0284c7; color: #ffffff; text-align: center; }
+.primary-action span { position: absolute; left: 0px; top: 14px; width: 100%; height: 34px; color: #ffffff; font-size: 20px; line-height: 32px; text-align: center; }
+.primary-action img { position: absolute; left: 146px; top: 19px; }
+.primary-action img + span { padding-left: 32px; }
+#channel-play-button { position: absolute; left: 24px; top: 266px; width: 482px; height: 62px; }
+#preview-status-region { position: absolute; left: 24px; top: 354px; width: 482px; height: 140px; border-top: 1px #1e293b; }
+#preview-status-dot { position: absolute; left: 0px; top: 22px; }
+#preview-status-title { position: absolute; left: 22px; top: 13px; width: 450px; height: 32px; overflow: hidden; color: #38bdf8; font-size: 18px; line-height: 28px; white-space: nowrap; text-overflow: ellipsis; }
+#preview-status-message { position: absolute; left: 0px; top: 55px; width: 482px; height: 68px; overflow: hidden; color: #94a3b8; font-size: 16px; line-height: 24px; }
+
+#screen-live-tv.favorites-view #source-region,
+#screen-live-tv.favorites-view #group-region,
+#screen-live-tv.favorites-view #search-region { display: none; }
+#screen-live-tv.favorites-view #channel-region,
+#screen-live-tv.favorites-view #channel-detail-region { top: 98px; }
+#screen-live-tv.favorites-view #live-status-region,
+#screen-live-tv.favorites-view #error-region { top: 642px; }
+
+#live-status-region, #error-region { position: absolute; left: 0px; top: 760px; width: 1792px; height: 56px; border: 1px #1e293b; border-radius: 8px; background-color: #0f172a; }
+#live-status-dot { position: absolute; left: 18px; top: 22px; }
+#live-status-label { position: absolute; left: 42px; top: 12px; width: 280px; color: #38bdf8; font-size: 18px; }
+#live-status-detail { position: absolute; right: 18px; top: 12px; width: 900px; overflow: hidden; color: #94a3b8; font-size: 16px; text-align: right; white-space: nowrap; text-overflow: ellipsis; }
+#error-region { border: 2px #ef4444; background-color: #2b111a; }
+#error-title { position: absolute; left: 18px; top: 12px; width: 300px; color: #ef4444; font-size: 18px; }
+#error-message { position: absolute; left: 330px; top: 12px; width: 1110px; overflow: hidden; color: #94a3b8; font-size: 16px; white-space: nowrap; text-overflow: ellipsis; }
+#error-action { position: absolute; right: 12px; top: 7px; width: 310px; height: 40px; text-align: center; }
+#error-action span { text-align: center; }
+
+#source-management-region { position: absolute; left: 0px; top: 98px; width: 1060px; height: 640px; }
+.source-management-card { position: absolute; left: 24px; width: 1012px; height: 164px; border: 1px #1e293b; border-radius: 12px; background-color: #0f172a; }
+#source-management-slot-0 { top: 58px; } #source-management-slot-1 { top: 240px; } #source-management-slot-2 { top: 422px; }
+.source-management-card span:first-child { position: absolute; left: 24px; top: 26px; width: 780px; height: 38px; color: #ffffff; font-size: 24px; line-height: 34px; }
+.source-management-card span:nth-child(2) { position: absolute; left: 24px; top: 78px; width: 920px; height: 32px; overflow: hidden; color: #94a3b8; font-size: 16px; white-space: nowrap; text-overflow: ellipsis; }
+.source-management-card .item-status { position: absolute; right: 24px; top: 28px; width: 180px; color: #10b981; font-size: 16px; text-align: right; }
+.source-management-card .source-action { position: absolute; right: 24px; top: 118px; width: 220px; color: #38bdf8; font-size: 14px; letter-spacing: 1px; text-align: right; }
+.source-management-card.selected, .source-management-card.focused { border: 2px #38bdf8; background-color: #0c2d48; }
+.source-management-card.focused { border-color: #ffffff; }
+
+#source-status-region { position: absolute; left: 1078px; top: 98px; width: 714px; height: 640px; background-color: #0b1120; }
+#source-status-label { position: absolute; left: 24px; top: 70px; width: 666px; height: 52px; overflow: hidden; color: #ffffff; font-size: 28px; line-height: 44px; }
+#source-status-detail { position: absolute; left: 24px; top: 140px; width: 666px; height: 220px; overflow: hidden; color: #94a3b8; font-size: 18px; line-height: 28px; }
+#source-refresh-button { position: absolute; left: 24px; top: 520px; width: 666px; height: 64px; }
+.focused, button:focus { border: 3px #ffffff; }
+
+#search-overlay { position: absolute; left: 0px; top: 100px; width: 1920px; height: 890px; background-color: #050811; }
+#search-panel { position: absolute; left: 160px; top: 48px; width: 1600px; height: 750px; border: 2px #1e293b; border-radius: 14px; background-color: #0d1322; }
+.overlay-kicker { position: absolute; left: 48px; top: 34px; color: #38bdf8; font-size: 16px; letter-spacing: 2px; }
+.overlay-title { position: absolute; left: 48px; top: 68px; color: #ffffff; font-size: 36px; line-height: 48px; }
+#search-help { position: absolute; left: 48px; top: 120px; width: 1200px; color: #94a3b8; font-size: 16px; }
+#search-query-button { position: absolute; left: 48px; top: 172px; width: 1504px; height: 86px; border-radius: 10px; background-color: #070a12; }
+.filter-label { position: absolute; left: 18px; top: 10px; color: #38bdf8; font-size: 14px; line-height: 20px; letter-spacing: 1px; }
+#search-query-value { position: absolute; left: 18px; top: 40px; width: 1468px; height: 32px; overflow: hidden; color: #ffffff; font-size: 20px; white-space: nowrap; text-overflow: ellipsis; }
+#filter-row { position: absolute; left: 48px; top: 286px; width: 1504px; height: 142px; }
+.filter-button { position: absolute; top: 0px; width: 364px; height: 142px; border-radius: 10px; background-color: #070a12; }
+#filter-country { left: 0px; } #filter-category { left: 380px; } #filter-language { left: 760px; } #filter-quality { left: 1140px; }
+.filter-button span:last-child { position: absolute; left: 18px; top: 54px; width: 328px; height: 54px; overflow: hidden; color: #cbd5e1; font-size: 20px; line-height: 30px; text-overflow: ellipsis; }
+#search-result-count { position: absolute; left: 48px; top: 462px; width: 900px; color: #38bdf8; font-size: 18px; }
+#search-reset { position: absolute; left: 48px; top: 540px; width: 500px; height: 68px; text-align: center; }
+#search-reset span { position: absolute; left: 0px; top: 17px; width: 500px; text-align: center; }
+#search-apply { position: absolute; right: 48px; top: 540px; width: 680px; height: 68px; }
+#search-apply span { top: 17px; }
+#search-query-button.focused, .filter-button.focused, #search-reset.focused { border: 3px #ffffff; background-color: #0c2d48; }
+#search-apply.focused, #channel-play-button.focused, #source-refresh-button.focused { border: 4px #ffffff; }
+
+#controller-footer { position: absolute; left: 0px; top: 990px; width: 1920px; height: 90px; border-top: 2px #1e293b; background-color: #0d1322; }
+.controller-hint { position: absolute; top: 24px; height: 42px; color: #94a3b8; font-size: 14px; line-height: 34px; }
+.controller-hint img { position: absolute; left: 0px; top: 0px; width: 34px; height: 34px; }
+.controller-hint img + span { position: absolute; left: 44px; top: 0px; white-space: nowrap; }
+.hint-0 { left: 64px; width: 150px; } .hint-1 { left: 230px; width: 170px; } .hint-2 { left: 418px; width: 150px; } .hint-3 { left: 588px; width: 150px; } .hint-4 { left: 758px; width: 230px; } .hint-5 { left: 1008px; width: 150px; }
+.control-glyph { position: absolute; left: 0px; top: 2px; width: 82px; height: 30px; border: 1px #1e293b; border-radius: 6px; background-color: #101726; color: #ffffff; font-size: 12px; line-height: 28px; text-align: center; }
+.control-glyph + span { position: absolute; left: 94px; top: 0px; white-space: nowrap; }
+#footer-status { position: absolute; right: 64px; top: 26px; width: 320px; height: 38px; color: #38bdf8; text-align: right; }
+#footer-status-dot { position: absolute; right: 286px; top: 10px; }
+#footer-status-label { position: absolute; right: 0px; top: 0px; width: 268px; overflow: hidden; white-space: nowrap; text-align: right; }
+.warning { color: #f59e0b; } .error { color: #ef4444; } .hidden { display: none; }
