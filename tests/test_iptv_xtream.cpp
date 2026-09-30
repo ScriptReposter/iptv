@@ -120,10 +120,10 @@ TEST(IptvXtreamTest, BuildsVodAndSeriesEndpointsAndUrls)
 {
     const iptv::XtreamCredentials credentials = Credentials();
     std::string url;
-    ASSERT_TRUE(iptv::BuildXtreamVodUrl(credentials, "501", "mp4", &url));
+    ASSERT_TRUE(iptv::BuildXtreamVodUrl(credentials, "501", ".mp4", &url));
     EXPECT_EQ(url, "https://provider.example:25461/movie/test%20user/p%40ss%26word/501.mp4");
 
-    ASSERT_TRUE(iptv::BuildXtreamSeriesUrl(credentials, "902", "mkv", &url));
+    ASSERT_TRUE(iptv::BuildXtreamSeriesUrl(credentials, "902", ".mkv", &url));
     EXPECT_EQ(url, "https://provider.example:25461/series/test%20user/p%40ss%26word/902.mkv");
 }
 
@@ -158,6 +158,17 @@ TEST(IptvXtreamTest, ConvertsVodAndSeriesJsonIntoCatalog)
     EXPECT_EQ(catalog.channels[1].media_kind, iptv::MediaKind::Series);
     EXPECT_EQ(catalog.channels[1].group_title, "Crime Shows");
     EXPECT_EQ(catalog.channels[1].tvg_id, "4.9");
+
+    constexpr std::string_view uncategorized_vod =
+        R"([{"stream_id":202,"name":"Inception","container_extension":".mkv"}])";
+    ASSERT_EQ(iptv::ParseXtreamVodStreams(uncategorized_vod, credentials, categories,
+                                          0x5854000000001234u, &catalog, &report),
+              iptv::XtreamStatus::ok);
+    ASSERT_EQ(catalog.channels.size(), 3u);
+    EXPECT_EQ(catalog.channels[2].media_kind, iptv::MediaKind::Movie);
+    EXPECT_EQ(catalog.channels[2].group_title, "Movies");
+    EXPECT_EQ(catalog.channels[2].url,
+              "https://provider.example:25461/movie/test%20user/p%40ss%26word/202.mkv");
 }
 
 } // namespace

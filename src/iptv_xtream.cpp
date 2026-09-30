@@ -413,10 +413,10 @@ template <typename Handler> bool ReadArrayResponse(JsonReader *reader, Handler h
 }
 
 std::string CategoryName(const std::unordered_map<std::string, std::string> &categories,
-                         const std::string &id)
+                         const std::string &id, const char *default_name = "Live TV")
 {
     const auto found = categories.find(id);
-    return found == categories.end() || found->second.empty() ? "Live TV" : found->second;
+    return found == categories.end() || found->second.empty() ? default_name : found->second;
 }
 
 std::string StableXtreamChannelId(std::uint64_t source_id, std::string_view stream_id)
@@ -519,6 +519,10 @@ bool BuildXtreamLiveUrl(const XtreamCredentials &credentials, std::string_view s
         stream_id.size() > 64u || extension.size() > 12u)
         return false;
     std::string selected_extension = extension.empty() ? "ts" : std::string(extension);
+    while (!selected_extension.empty() && selected_extension.front() == '.')
+        selected_extension.erase(0, 1);
+    if (selected_extension.empty())
+        selected_extension = "ts";
     if (!std::all_of(selected_extension.begin(), selected_extension.end(),
                      [](unsigned char value) { return std::isalnum(value) != 0; }))
         return false;
@@ -540,6 +544,10 @@ bool BuildXtreamVodUrl(const XtreamCredentials &credentials, std::string_view st
         stream_id.size() > 64u || extension.size() > 12u)
         return false;
     std::string selected_extension = extension.empty() ? "mp4" : std::string(extension);
+    while (!selected_extension.empty() && selected_extension.front() == '.')
+        selected_extension.erase(0, 1);
+    if (selected_extension.empty())
+        selected_extension = "mp4";
     if (!std::all_of(selected_extension.begin(), selected_extension.end(),
                      [](unsigned char value) { return std::isalnum(value) != 0; }))
         return false;
@@ -561,6 +569,10 @@ bool BuildXtreamSeriesUrl(const XtreamCredentials &credentials, std::string_view
         stream_id.size() > 64u || extension.size() > 12u)
         return false;
     std::string selected_extension = extension.empty() ? "mp4" : std::string(extension);
+    while (!selected_extension.empty() && selected_extension.front() == '.')
+        selected_extension.erase(0, 1);
+    if (selected_extension.empty())
+        selected_extension = "mp4";
     if (!std::all_of(selected_extension.begin(), selected_extension.end(),
                      [](unsigned char value) { return std::isalnum(value) != 0; }))
         return false;
@@ -917,7 +929,7 @@ XtreamStatus ParseXtreamVodStreams(std::string_view json, const XtreamCredential
             channel.name = name.empty() ? "Movie " + stream_id : std::move(name);
             channel.tvg_name = channel.name;
             channel.tvg_id = std::move(rating);
-            std::string group = CategoryName(category_names, category_id);
+            std::string group = CategoryName(category_names, category_id, "Movies");
             channel.group_title = group.empty() ? "Movies" : std::move(group);
             channel.source_line = source_line;
             channel.media_kind = MediaKind::Movie;
@@ -1022,7 +1034,7 @@ XtreamStatus ParseXtreamSeriesStreams(std::string_view json, const XtreamCredent
             channel.name = name.empty() ? "Series " + series_id : std::move(name);
             channel.tvg_name = channel.name;
             channel.tvg_id = std::move(rating);
-            std::string group = CategoryName(category_names, category_id);
+            std::string group = CategoryName(category_names, category_id, "Series");
             channel.group_title = group.empty() ? "Series" : std::move(group);
             if (!genre.empty())
                 channel.alternate_group_titles.push_back(std::move(genre));

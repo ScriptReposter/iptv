@@ -604,8 +604,15 @@ bool IptvApp::Initialize(Rml::ElementDocument *document)
     if (!catalog_loaded_)
         catalog_ = {};
     else
+    {
+        for (iptv::Channel &ch : catalog_.channels)
+        {
+            if (ch.media_kind == iptv::MediaKind::Live)
+                ch.media_kind = iptv::DetectMediaKind(ch);
+        }
         (void)iptv::LoadPlaybackResults(iptv::kDefaultPlaybackHistoryPath, active_source_id,
                                         &catalog_);
+    }
     const unsigned active_idx = SourceIndex(active_source_);
     source_health_[active_idx] = catalog_loaded_ ? SourceHealth::Cached
                                  : (custom_active && !custom_source_url_.empty()) ||
@@ -1708,6 +1715,7 @@ void *IptvApp::RefreshThreadEntry(void *argument)
             {
                 api_ready = false;
             }
+            iptv::http::FetchResult primary_fetch = app->pending_fetch_;
             if (api_ready && app->pending_xtream_status_ == iptv::XtreamStatus::ok)
             {
                 app->pending_xtream_stage_ = "live-categories";
@@ -1717,10 +1725,13 @@ void *IptvApp::RefreshThreadEntry(void *argument)
 
                 app->pending_xtream_stage_ = "live-streams";
                 if (fetch("get_live_streams"))
+                {
+                    primary_fetch = app->pending_fetch_;
                     app->pending_xtream_status_ = iptv::ParseXtreamLiveStreams(
                         std::string_view(response.data(), app->pending_fetch_.bytes),
                         app->xtream_credentials_, live_categories, app->refresh_source_id_,
                         &app->pending_catalog_, &app->pending_report_);
+                }
             }
             if (api_ready && app->pending_xtream_status_ == iptv::XtreamStatus::ok)
             {
@@ -1750,6 +1761,8 @@ void *IptvApp::RefreshThreadEntry(void *argument)
                         app->xtream_credentials_, series_categories, app->refresh_source_id_,
                         &app->pending_catalog_, &app->pending_report_);
             }
+            if (primary_fetch.status == iptv::http::Status::ok)
+                app->pending_fetch_ = primary_fetch;
         }
         else
         {
@@ -1802,6 +1815,11 @@ void IptvApp::ConsumeRefresh()
     {
         catalog_ = std::move(pending_catalog_);
         catalog_loaded_ = true;
+        for (iptv::Channel &ch : catalog_.channels)
+        {
+            if (ch.media_kind == iptv::MediaKind::Live)
+                ch.media_kind = iptv::DetectMediaKind(ch);
+        }
         (void)iptv::LoadPlaybackResults(iptv::kDefaultPlaybackHistoryPath, catalog_.source_id,
                                         &catalog_);
         RebuildFacets();

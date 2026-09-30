@@ -284,4 +284,42 @@ TEST(IptvCatalogTest, DetectsMediaKindFromGroupTitleAndUrlExtension)
     EXPECT_EQ(catalog.channels[2].media_kind, iptv::MediaKind::Live);
 }
 
+TEST(IptvCatalogTest, DetectsMediaKindFromTvgTypeAndUrlPath)
+{
+    iptv::Channel movie_url;
+    movie_url.name = "Interstellar";
+    movie_url.url = "http://stream.example/movie/interstellar.ts?token=123";
+    EXPECT_EQ(iptv::DetectMediaKind(movie_url), iptv::MediaKind::Movie);
+
+    iptv::Channel series_url;
+    series_url.name = "Severance";
+    series_url.url = "http://stream.example/series/severance_ep1.ts?token=123";
+    EXPECT_EQ(iptv::DetectMediaKind(series_url), iptv::MediaKind::Series);
+
+    iptv::Channel series_bracket;
+    series_bracket.name = "[S01E01] Pilot";
+    series_bracket.url = "http://stream.example/stream.ts";
+    EXPECT_EQ(iptv::DetectMediaKind(series_bracket), iptv::MediaKind::Series);
+
+    constexpr std::string_view playlist =
+        "#EXTM3U\n"
+        "#EXTINF:-1 tvg-type=\"movie\" tvg-id=\"0\",Dune\n"
+        "http://stream.example/vod/dune.mkv\n"
+        "#EXTINF:-1 tvg-type=\"movie\" tvg-id=\"0\",Blade Runner\n"
+        "http://stream.example/vod/bladerunner.mkv\n"
+        "#EXTINF:-1 tvg-type=\"series\" tvg-id=\"series\",Shogun S01E01\n"
+        "http://stream.example/series/shogun_1.mp4\n"
+        "#EXTINF:-1 tvg-type=\"series\" tvg-id=\"series\",Shogun S01E02\n"
+        "http://stream.example/series/shogun_2.mp4\n";
+
+    const iptv::CatalogState catalog = iptv::ParseExtendedM3u(playlist, kSourceId);
+    ASSERT_EQ(catalog.channels.size(), 4u);
+    EXPECT_EQ(catalog.channels[0].media_kind, iptv::MediaKind::Movie);
+    EXPECT_EQ(catalog.channels[0].name, "Dune");
+    EXPECT_EQ(catalog.channels[1].media_kind, iptv::MediaKind::Movie);
+    EXPECT_EQ(catalog.channels[1].name, "Blade Runner");
+    EXPECT_EQ(catalog.channels[2].media_kind, iptv::MediaKind::Series);
+    EXPECT_EQ(catalog.channels[3].media_kind, iptv::MediaKind::Series);
+}
+
 } // namespace

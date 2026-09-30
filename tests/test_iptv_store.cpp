@@ -74,6 +74,7 @@ void ExpectChannelEquals(const iptv::Channel &expected, const iptv::Channel &act
     EXPECT_EQ(actual.playback_status, expected.playback_status);
     EXPECT_EQ(actual.playback_result, expected.playback_result);
     EXPECT_EQ(actual.playback_checked_unix, expected.playback_checked_unix);
+    EXPECT_EQ(actual.media_kind, expected.media_kind);
 }
 
 class IptvStoreTest : public ::testing::Test
@@ -314,4 +315,35 @@ TEST_F(IptvStoreTest, PersistsPlaybackResultsAcrossCatalogRefreshesAndSources)
               iptv::StoreStatus::ok);
     EXPECT_EQ(other_source.channels[0].playback_status, iptv::PlaybackStatus::unknown);
 }
+
+TEST_F(IptvStoreTest, PersistsMoviesAndSeriesMediaKinds)
+{
+    iptv::CatalogState catalog;
+    catalog.source_id = kSourceId;
+
+    iptv::Channel live = MakeChannel(0);
+    live.media_kind = iptv::MediaKind::Live;
+
+    iptv::Channel movie = MakeChannel(1);
+    movie.name = "Gladiator";
+    movie.media_kind = iptv::MediaKind::Movie;
+
+    iptv::Channel series = MakeChannel(2);
+    series.name = "Succession S01E01";
+    series.media_kind = iptv::MediaKind::Series;
+
+    catalog.channels.push_back(live);
+    catalog.channels.push_back(movie);
+    catalog.channels.push_back(series);
+
+    ASSERT_EQ(iptv::SaveCatalog(path_.string(), catalog), iptv::StoreStatus::ok);
+
+    iptv::CatalogState loaded;
+    ASSERT_EQ(iptv::LoadCatalog(path_.string(), &loaded), iptv::StoreStatus::ok);
+    ASSERT_EQ(loaded.channels.size(), 3u);
+    EXPECT_EQ(loaded.channels[0].media_kind, iptv::MediaKind::Live);
+    EXPECT_EQ(loaded.channels[1].media_kind, iptv::MediaKind::Movie);
+    EXPECT_EQ(loaded.channels[2].media_kind, iptv::MediaKind::Series);
+}
+
 } // namespace

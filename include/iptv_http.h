@@ -11,8 +11,8 @@
 namespace iptv::http
 {
 
-inline constexpr std::size_t kDefaultMaxPlaylistBytes = 8u * 1024u * 1024u;
-inline constexpr std::size_t kHardMaxPlaylistBytes = 16u * 1024u * 1024u;
+inline constexpr std::size_t kDefaultMaxPlaylistBytes = 32u * 1024u * 1024u;
+inline constexpr std::size_t kHardMaxPlaylistBytes = 64u * 1024u * 1024u;
 inline constexpr std::size_t kMaxUrlBytes = 4096u;
 inline constexpr std::size_t kMaxRedirects = 5u;
 inline constexpr std::size_t kMaxErrorResponseBytes = 511u;

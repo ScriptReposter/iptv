@@ -14,7 +14,7 @@ namespace iptv
 namespace
 {
 
-constexpr std::size_t kHardMaxPlaylistBytes = 16u * 1024u * 1024u;
+constexpr std::size_t kHardMaxPlaylistBytes = 64u * 1024u * 1024u;
 constexpr std::size_t kHardMaxRecordBytes = 64u * 1024u;
 constexpr std::size_t kHardMaxUrlBytes = 8192u;
 constexpr std::size_t kHardMaxFieldBytes = 4096u;
@@ -325,6 +325,7 @@ struct EntryMetadata
     std::string tvg_language;
     std::string http_user_agent;
     std::string http_referrer;
+    MediaKind media_kind = MediaKind::Live;
 };
 
 struct PendingEntry
@@ -404,6 +405,18 @@ void SetAttribute(std::string_view key, std::string &&value, EntryMetadata *meta
     else if (key == "tvg-language")
     {
         metadata->tvg_language = std::move(value);
+    }
+    else if (key == "tvg-type" || key == "type")
+    {
+        if (ContainsInsensitive(value, "movie") || ContainsInsensitive(value, "vod") ||
+            ContainsInsensitive(value, "film"))
+        {
+            metadata->media_kind = MediaKind::Movie;
+        }
+        else if (ContainsInsensitive(value, "series") || ContainsInsensitive(value, "show"))
+        {
+            metadata->media_kind = MediaKind::Series;
+        }
     }
 }
 
@@ -671,6 +684,18 @@ void MergeChannel(Channel *existing, const EntryMetadata &metadata, std::string_
                        max_alternate_groups);
         }
     }
+    if (existing->media_kind == MediaKind::Live && metadata.media_kind != MediaKind::Live)
+    {
+        existing->media_kind = metadata.media_kind;
+    }
+}
+
+bool IsPlaceholderTvgId(std::string_view id)
+{
+    return id.empty() || id == "0" || id == "-1" || id == "none" || id == "n/a" ||
+           id == "na" || id == "null" || id == "undefined" || id == "movie" ||
+           id == "movies" || id == "vod" || id == "series" || id == "tv" ||
+           id == "channel" || id == "stream";
 }
 
 } // namespace
@@ -795,15 +820,19 @@ CatalogState ParseExtendedM3u(std::string_view input, std::uint64_t source_id,
         }
         channel.source_line = entry.line;
 
-        channel.media_kind = DetectMediaKind(channel);
+        channel.media_kind = entry.metadata.media_kind != MediaKind::Live
+                                 ? entry.metadata.media_kind
+                                 : DetectMediaKind(channel);
 
         const std::string normalized_tvg_id = LowerTrimmed(channel.tvg_id);
         std::string identity =
             normalized_tvg_id.empty() ? "url:" + channel.url : "tvg:" + normalized_tvg_id;
         channel.id = StableId(source_id, identity);
 
+        const bool allow_id_merge = channel.media_kind == MediaKind::Live &&
+                                    !IsPlaceholderTvgId(normalized_tvg_id);
         std::size_t existing_index = catalog.channels.size();
-        if (!normalized_tvg_id.empty())
+        if (allow_id_merge && !normalized_tvg_id.empty())
         {
             const auto by_id = channels_by_tvg_id.find(normalized_tvg_id);
             if (by_id != channels_by_tvg_id.end())
@@ -818,7 +847,9 @@ CatalogState ParseExtendedM3u(std::string_view input, std::uint64_t source_id,
             Channel &existing = catalog.channels[existing_index];
             MergeChannel(&existing, entry.metadata, channel.url, bounded.max_alternate_urls,
                          bounded.max_alternate_groups);
-            if (!normalized_tvg_id.empty())
+            if (existing.media_kind == MediaKind::Live && channel.media_kind != MediaKind::Live)
+                existing.media_kind = channel.media_kind;
+            if (allow_id_merge && !normalized_tvg_id.empty())
                 channels_by_tvg_id.emplace(normalized_tvg_id, existing_index);
             channels_by_url.emplace(channel.url, existing_index);
             ++report->duplicates;
@@ -833,7 +864,7 @@ CatalogState ParseExtendedM3u(std::string_view input, std::uint64_t source_id,
             }
             const std::size_t inserted = catalog.channels.size();
             catalog.channels.push_back(std::move(channel));
-            if (!normalized_tvg_id.empty())
+            if (allow_id_merge && !normalized_tvg_id.empty())
                 channels_by_tvg_id.emplace(normalized_tvg_id, inserted);
             channels_by_url.emplace(catalog.channels.back().url, inserted);
             ++report->accepted;
@@ -847,6 +878,75 @@ CatalogState ParseExtendedM3u(std::string_view input, std::uint64_t source_id,
     return catalog;
 }
 
+namespace
+{
+
+bool HasSeasonEpisode(std::string_view text)
+{
+    for (std::size_t i = 0; i + 3 < text.size(); ++i)
+    {
+        if (LowerAscii(text[i]) == 's')
+        {
+            if (i > 0 && std::isalpha(static_cast<unsigned char>(text[i - 1])))
+                continue;
+            std::size_t j = i + 1;
+            while (j < text.size() && std::isdigit(static_cast<unsigned char>(text[j])))
+                ++j;
+            if (j > i + 1 && j < text.size())
+            {
+                if (text[j] == ' ' || text[j] == '-' || text[j] == '_')
+                    ++j;
+                if (j < text.size() && LowerAscii(text[j]) == 'e')
+                {
+                    std::size_t k = j + 1;
+                    while (k < text.size() && std::isdigit(static_cast<unsigned char>(text[k])))
+                        ++k;
+                    if (k > j + 1)
+                        return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool IsSeriesKeyword(std::string_view text)
+{
+    return ContainsInsensitive(text, "series") || ContainsInsensitive(text, "série") ||
+           ContainsInsensitive(text, "tv show") || ContainsInsensitive(text, "tv shows") ||
+           ContainsInsensitive(text, "shows") || ContainsInsensitive(text, "season") ||
+           ContainsInsensitive(text, "serial") || ContainsInsensitive(text, "anime") ||
+           ContainsInsensitive(text, "telenovela") || ContainsInsensitive(text, "dorama") ||
+           ContainsInsensitive(text, "staffel") || ContainsInsensitive(text, "saison") ||
+           ContainsInsensitive(text, "temporada");
+}
+
+bool IsMovieKeyword(std::string_view text)
+{
+    return ContainsInsensitive(text, "movie") || ContainsInsensitive(text, "vod") ||
+           ContainsInsensitive(text, "film") || ContainsInsensitive(text, "cinema") ||
+           ContainsInsensitive(text, "cine") || ContainsInsensitive(text, "pelicula") ||
+           ContainsInsensitive(text, "filme") || ContainsInsensitive(text, "kino");
+}
+
+bool UrlPathContains(std::string_view url, std::string_view segment)
+{
+    return ContainsInsensitive(url, segment);
+}
+
+bool UrlHasVideoExtension(std::string_view url)
+{
+    const std::size_t query_pos = url.find_first_of("?#");
+    const std::string_view clean_url =
+        query_pos == std::string_view::npos ? url : url.substr(0, query_pos);
+    return EndsWithInsensitive(clean_url, ".mp4") || EndsWithInsensitive(clean_url, ".mkv") ||
+           EndsWithInsensitive(clean_url, ".avi") || EndsWithInsensitive(clean_url, ".mov") ||
+           EndsWithInsensitive(clean_url, ".wmv") || EndsWithInsensitive(clean_url, ".iso") ||
+           EndsWithInsensitive(clean_url, ".webm");
+}
+
+} // namespace
+
 MediaKind DetectMediaKind(const Channel &channel)
 {
     if (channel.media_kind != MediaKind::Live)
@@ -858,37 +958,63 @@ MediaKind DetectMediaKind(const Channel &channel)
     if (channel.id.find(":series:") != std::string::npos)
         return MediaKind::Series;
 
-    const std::string_view group = channel.group_title;
-    if (ContainsInsensitive(group, "movie") || ContainsInsensitive(group, "vod") ||
-        ContainsInsensitive(group, "film") || ContainsInsensitive(group, "cinema"))
-        return MediaKind::Movie;
+    // 1. Check URL path patterns
+    auto check_url_path = [](std::string_view url) -> MediaKind
+    {
+        if (UrlPathContains(url, "/series/") || UrlPathContains(url, "/tvshow/") ||
+            UrlPathContains(url, "/tvshows/"))
+            return MediaKind::Series;
+        if (UrlPathContains(url, "/movie/") || UrlPathContains(url, "/movies/") ||
+            UrlPathContains(url, "/vod/"))
+            return MediaKind::Movie;
+        return MediaKind::Live;
+    };
 
-    if (ContainsInsensitive(group, "series") || ContainsInsensitive(group, "tv show") ||
-        ContainsInsensitive(group, "season") || ContainsInsensitive(group, "serial") ||
-        ContainsInsensitive(group, "anime"))
+    MediaKind url_kind = check_url_path(channel.url);
+    if (url_kind != MediaKind::Live)
+        return url_kind;
+    for (const std::string &alt : channel.alternate_urls)
+    {
+        url_kind = check_url_path(alt);
+        if (url_kind != MediaKind::Live)
+            return url_kind;
+    }
+
+    // 2. Check group titles
+    if (IsSeriesKeyword(channel.group_title))
         return MediaKind::Series;
+    if (IsMovieKeyword(channel.group_title))
+        return MediaKind::Movie;
 
     for (const std::string &alt : channel.alternate_group_titles)
     {
-        if (ContainsInsensitive(alt, "movie") || ContainsInsensitive(alt, "vod") ||
-            ContainsInsensitive(alt, "film") || ContainsInsensitive(alt, "cinema"))
-            return MediaKind::Movie;
-        if (ContainsInsensitive(alt, "series") || ContainsInsensitive(alt, "tv show") ||
-            ContainsInsensitive(alt, "season") || ContainsInsensitive(alt, "serial") ||
-            ContainsInsensitive(alt, "anime"))
+        if (IsSeriesKeyword(alt))
             return MediaKind::Series;
+        if (IsMovieKeyword(alt))
+            return MediaKind::Movie;
     }
 
+    // 3. Check name for Series patterns (e.g. S01E01, episode, season)
     const std::string_view name = channel.name;
-    if (ContainsInsensitive(name, " s0") || ContainsInsensitive(name, " s1") ||
-        ContainsInsensitive(name, " s2") || ContainsInsensitive(name, " e0") ||
-        ContainsInsensitive(name, " e1") || ContainsInsensitive(name, " e2") ||
-        ContainsInsensitive(name, "episode") || ContainsInsensitive(name, "season"))
+    if (HasSeasonEpisode(name) || ContainsInsensitive(name, " s0") ||
+        ContainsInsensitive(name, " s1") || ContainsInsensitive(name, " s2") ||
+        ContainsInsensitive(name, " e0") || ContainsInsensitive(name, " e1") ||
+        ContainsInsensitive(name, " e2") || ContainsInsensitive(name, "episode") ||
+        ContainsInsensitive(name, "season") || ContainsInsensitive(name, "saison") ||
+        ContainsInsensitive(name, "staffel") || ContainsInsensitive(name, "temporada") ||
+        ContainsInsensitive(name, "capitulo") || ContainsInsensitive(name, "episodio"))
+    {
         return MediaKind::Series;
+    }
 
-    if (EndsWithInsensitive(channel.url, ".mp4") || EndsWithInsensitive(channel.url, ".mkv") ||
-        EndsWithInsensitive(channel.url, ".avi"))
+    // 4. Video file extension in URL
+    if (UrlHasVideoExtension(channel.url))
         return MediaKind::Movie;
+    for (const std::string &alt : channel.alternate_urls)
+    {
+        if (UrlHasVideoExtension(alt))
+            return MediaKind::Movie;
+    }
 
     return MediaKind::Live;
 }

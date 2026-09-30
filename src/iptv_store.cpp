@@ -20,7 +20,7 @@ namespace iptv
 namespace
 {
 
-constexpr int kSchemaVersion = 1;
+constexpr int kCurrentSchemaVersion = 2;
 constexpr int kPlaybackSchemaVersion = 1;
 
 StoreStatus MapSqlite(int result)
@@ -148,7 +148,7 @@ bool CreateSchema(sqlite3 *database)
         "source_line INTEGER NOT NULL,name TEXT NOT NULL,url TEXT NOT NULL,tvg_id TEXT NOT NULL,"
         "tvg_name TEXT NOT NULL,tvg_logo TEXT NOT NULL,group_title TEXT NOT NULL,"
         "tvg_country TEXT NOT NULL,tvg_language TEXT NOT NULL,user_agent TEXT NOT NULL,"
-        "referrer TEXT NOT NULL) WITHOUT ROWID;"
+        "referrer TEXT NOT NULL,media_kind INTEGER NOT NULL DEFAULT 0) WITHOUT ROWID;"
         "CREATE UNIQUE INDEX channels_position ON channels(position);"
         "CREATE INDEX channels_name ON channels(name COLLATE NOCASE);"
         "CREATE INDEX channels_group ON channels(group_title COLLATE NOCASE);"
@@ -158,7 +158,7 @@ bool CreateSchema(sqlite3 *database)
         "url TEXT NOT NULL,PRIMARY KEY(channel_id,position)) WITHOUT ROWID;"
         "CREATE TABLE alternate_groups(channel_id TEXT NOT NULL,position INTEGER NOT NULL,"
         "value TEXT NOT NULL,PRIMARY KEY(channel_id,position)) WITHOUT ROWID;"
-        "PRAGMA user_version=1;");
+        "PRAGMA user_version=2;");
 }
 
 bool CreatePlaybackSchema(sqlite3 *database)
@@ -184,8 +184,8 @@ bool InsertCatalog(sqlite3 *database, const CatalogState &catalog, const StoreLi
     const bool prepared =
         Prepare(database,
                 "INSERT INTO channels(id,source_id,position,source_line,name,url,tvg_id,tvg_name,"
-                "tvg_logo,group_title,tvg_country,tvg_language,user_agent,referrer)"
-                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "tvg_logo,group_title,tvg_country,tvg_language,user_agent,referrer,media_kind)"
+                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 &channel_statement) &&
         Prepare(database, "INSERT INTO alternate_urls(channel_id,position,url) VALUES(?,?,?)",
                 &url_statement) &&
@@ -242,6 +242,8 @@ bool InsertCatalog(sqlite3 *database, const CatalogState &catalog, const StoreLi
              BindText(channel_statement, 12, channel.tvg_language) &&
              BindText(channel_statement, 13, channel.http_user_agent) &&
              BindText(channel_statement, 14, channel.http_referrer) &&
+             sqlite3_bind_int64(channel_statement, 15,
+                                static_cast<sqlite3_int64>(channel.media_kind)) == SQLITE_OK &&
              sqlite3_step(channel_statement) == SQLITE_DONE;
 
         for (std::size_t alternate = 0; ok && alternate < channel.alternate_urls.size();
@@ -400,7 +402,7 @@ static StoreStatus LoadCatalogFile(const std::string &path, CatalogState *catalo
               sqlite3_step(statement) == SQLITE_ROW;
     const int version = ok ? sqlite3_column_int(statement, 0) : 0;
     sqlite3_finalize(statement);
-    if (!ok || version != kSchemaVersion)
+    if (!ok || (version != 1 && version != kCurrentSchemaVersion))
     {
         sqlite3_close_v2(database);
         const StoreStatus status = ok ? StoreStatus::unsupported_version : StoreStatus::corrupt;
@@ -444,12 +446,15 @@ static StoreStatus LoadCatalogFile(const std::string &path, CatalogState *catalo
     if (ok)
         loaded.channels.reserve(count);
 
+    const char *query =
+        version >= 2
+            ? "SELECT id,source_id,source_line,name,url,tvg_id,tvg_name,tvg_logo,group_title,"
+              "tvg_country,tvg_language,user_agent,referrer,media_kind FROM channels ORDER BY "
+              "position"
+            : "SELECT id,source_id,source_line,name,url,tvg_id,tvg_name,tvg_logo,group_title,"
+              "tvg_country,tvg_language,user_agent,referrer FROM channels ORDER BY position";
     statement = nullptr;
-    ok = ok &&
-         Prepare(database,
-                 "SELECT id,source_id,source_line,name,url,tvg_id,tvg_name,tvg_logo,group_title,"
-                 "tvg_country,tvg_language,user_agent,referrer FROM channels ORDER BY position",
-                 &statement);
+    ok = ok && Prepare(database, query, &statement);
     while (ok && sqlite3_step(statement) == SQLITE_ROW)
     {
         Channel channel;
@@ -466,6 +471,17 @@ static StoreStatus LoadCatalogFile(const std::string &path, CatalogState *catalo
         channel.tvg_language = ReadText(statement, 10);
         channel.http_user_agent = ReadText(statement, 11);
         channel.http_referrer = ReadText(statement, 12);
+        if (version >= 2)
+        {
+            const int kind_val = sqlite3_column_int(statement, 13);
+            channel.media_kind = (kind_val >= 0 && kind_val <= 2)
+                                     ? static_cast<MediaKind>(kind_val)
+                                     : MediaKind::Live;
+        }
+        if (channel.media_kind == MediaKind::Live)
+        {
+            channel.media_kind = DetectMediaKind(channel);
+        }
         ok = ValidChannel(channel, loaded, limits);
         if (ok)
             loaded.channels.push_back(std::move(channel));
