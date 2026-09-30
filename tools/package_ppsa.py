@@ -45,7 +45,12 @@ def main():
     version = param_data.get("contentVersion", "01.000.015")
     print(f"Packaging Title: {param_data.get('titleId')} | Version: {version}")
     
-    # 1. Update sce_sys
+    # 1. Update sce_sys and eboot.bin
+    root_eboot = root / "eboot.bin"
+    if root_eboot.exists():
+        print(f"Updating eboot.bin from {root_eboot} ({root_eboot.stat().st_size:,} bytes)...")
+        shutil.copy2(root_eboot, dest_app / "eboot.bin")
+
     print("Updating sce_sys files...")
     shutil.copy2(param_path, dest_app / "sce_sys" / "param.json")
     for asset in ["icon0.png", "pic0.dds", "pic1.dds", "snd0.at9"]:
